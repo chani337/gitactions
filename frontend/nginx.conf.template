@@ -1,38 +1,20 @@
-# 1. 기존 nginx.conf 파일명을 nginx.conf.template으로 변경
-mv frontend/nginx.conf frontend/nginx.conf.template
-
-# 2. nginx.conf.template 내용을 새 설정으로 덮어쓰기
-cat <<'EOF' > frontend/nginx.conf.template
 server {
     listen 80;
     server_name ${DOMAIN};
-
     return 301 https://$host$request_uri;
 }
-
 server {
     listen 443 ssl;
     server_name ${DOMAIN};
-
     ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
-
     location / {
-        root /usr/share/nginx/html;
-        index index.html;
+        root   /usr/share/nginx/html;
+        index  index.html;
         try_files $uri $uri/ /index.html;
     }
-
     location /api/ {
         proxy_pass http://${BACKEND_HOST}:8080/api/;
-
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
-EOF
-
-# 3. 작성된 내용 확인
-cat frontend/nginx.conf.template
